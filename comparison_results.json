@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "metrics_checked": 306,
+  "failures": [],
+  "tolerance": {
+    "relative": 1e-12,
+    "absolute": 1e-12
+  },
+  "floating_point_differences": [
+    {
+      "column": "illuminating_scam",
+      "metric": "std_dev",
+      "absolute_difference": 5.551115123125783e-17
+    },
+    {
+      "column": "illuminating_msg_type_advocacy",
+      "metric": "std_dev",
+      "absolute_difference": 5.551115123125783e-17
+    },
+    {
+      "column": "illuminating_msg_type_issue",
+      "metric": "std_dev",
+      "absolute_difference": 5.551115123125783e-17
+    },
+    {
+      "column": "illuminating_msg_type_image",
+      "metric": "std_dev",
+      "absolute_difference": 1.1102230246251565e-16
+    },
+    {
+      "column": "illuminating_cta_subtype_fundraising",
+      "metric": "std_dev",
+      "absolute_difference": 5.551115123125783e-17
+    },
+    {
+      "column": "illuminating_topic_economy",
+      "metric": "std_dev",
+      "absolute_difference": 5.551115123125783e-17
+    },
+    {
+      "column": "illuminating_topic_education",
+      "metric": "std_dev",
+      "absolute_difference": 1.3877787807814457e-17
+    },
+    {
+      "column": "illuminating_topic_safety",
+      "metric": "std_dev",
+      "absolute_difference": 2.7755575615628914e-17
+    }
+  ]
+}
