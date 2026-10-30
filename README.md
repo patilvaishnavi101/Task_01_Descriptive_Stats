@@ -1,8 +1,8 @@
 # Research Task 1 · Descriptive Statistics
 
-**Phase 1: Exploring Facebook political advertising with pure Python**
+**Phases 1 and 2: Exploring Facebook political advertising with pure Python and Pandas**
 
-This project profiles the supplied `fb_ads_president_scored_anon(1).csv` using only Python's standard library. It reports every original column and provides reproducible descriptive statistics that can serve as the baseline for an independent Pandas implementation in Phase 2.
+The pure Python implementation profiles the supplied `fb_ads_president_scored_anon.csv` using only Python's standard library. It reports every original column and provides reproducible descriptive statistics that serve as the baseline for the independent Pandas implementation in Phase 2.
 
 ## Dataset at a glance
 
@@ -19,27 +19,27 @@ This project profiles the supplied `fb_ads_president_scored_anon(1).csv` using o
 
 The 26 numeric columns are binary annotation flags. The remaining columns include identifiers, names, dates, hashed message identifiers, dictionary-like ranges, and list-like fields. The task describes a 2024 election dataset, but creation and delivery-start dates span **July 6, 2021–November 5, 2024**. This analysis retains all supplied records rather than silently filtering them.
 
-## Run the analysis
-
-Requires **Python 3.9+**. No package installation is needed. Place the supplied CSV beside the script, or provide its actual path:
-
-```bash
-python pure_python_stats.py "fb_ads_president_scored_anon(1).csv"
-```
-
-To reproduce both saved reports:
-
-```bash
-python pure_python_stats.py "fb_ads_president_scored_anon(1).csv" --json-output statistics.json > statistics.txt
-```
+## Files and setup
 
 | File | Purpose |
 | --- | --- |
-| `pure_python_stats.py` | CSV loading, type inference, reusable statistics functions, readable reporting |
-| `statistics.txt` | Full human-readable output for all 40 columns |
-| `statistics.json` | Full machine-readable output for later comparison |
+| `pure_python_stats.py` | Standard-library analysis; no third-party dependencies |
+| `pandas_stats.py` | Independent Pandas analysis and comparison |
+| `pure_python_results.json` | Phase 1 baseline |
+| `pandas_results.json` | Phase 2 results, including missing percentages |
+| `comparison_results.json` | Verification results and floating-point differences |
+| `COMPARISON.md` | Required reflection on both approaches |
 
-The input dataset is supplied separately and is not included in the deliverable archive.
+Keep the scripts and `fb_ads_president_scored_anon.csv` in the project folder. The CSV is supplied separately. Pass its filename in the command; retain `csv_path` as the argument name inside both scripts.
+
+**Verified Windows environment:** Python 3.12, NumPy 2.2.6, Pandas 2.2.3. Phase 1 uses only the standard library. This environment successfully ran Phase 2 after the original Python 3.14 environment encountered a NumPy DLL loading error; that error did not establish that Python 3.14 itself was the cause.
+
+If the `.venv312` environment has already been created and verified, skip installation. Otherwise, with Python 3.12 installed, run these commands in PowerShell from the project folder:
+
+```powershell
+py -3.12 -m venv .venv312
+.\.venv312\Scripts\python.exe -m pip install numpy==2.2.6 pandas==2.2.3
+```
 
 ## Statistical choices
 
@@ -55,17 +55,11 @@ The input dataset is supplied separately and is not included in the deliverable 
 
 ## Verified findings
 
-### Ad volume is concentrated among a few page names
+### Page-level structure
 
-| Page name | Ad rows |
-| --- | ---: |
-| Kamala Harris | 55,503 |
-| Donald J. Trump | 23,988 |
-| Joe Biden | 14,822 |
-| The Daily Scroll | 10,461 |
-| Kamala HQ | 7,564 |
+The dataset contains **4,475 distinct page IDs** and **4,546 distinct page names**. Page names should not be assumed to identify a unique organization; page IDs are the more appropriate starting point for grouping and identity checks.
 
-These are counts of records grouped by page name. They do not establish spending leadership, persuasion, or electoral impact. Page names are not guaranteed to uniquely identify organizations: the dataset contains more distinct page names than page IDs.
+Individual people, page names, organization names, and identifying examples are omitted from this README. Findings are presented at an aggregate level.
 
 ### Call-to-action and advocacy flags are common
 
@@ -101,6 +95,36 @@ The script was run against the complete supplied CSV. Numeric functions were ind
 
 The script loads columns into memory and sorts numeric values for medians; memory use grows with dataset size. This is appropriate for the task's focus on clarity over efficiency.
 
-## Phase 2 comparison plan
+## Phase 2: Pandas analysis and verified comparison
 
-The independent Pandas script remains future work. It should use identical missing-value and parsing policies, preserve the 40-column schema, use `std(ddof=1)`, and apply the same frequency tie-breaking. Counts, medians, extrema, and frequencies should agree exactly; means and standard deviations should be compared using a small floating-point tolerance. Pandas will shorten aggregation code, while this implementation makes parsing decisions and edge cases explicit.
+Pandas was chosen because its built-in methods directly support the task requirements. The scripts compute their results independently. See **[COMPARISON.md](COMPARISON.md)** for the required reflection on agreement, implicit decisions, and lessons from manual analysis.
+
+The Pandas script displays shape, storage dtypes, `info()`, numeric and non-numeric `describe()` output, missing counts and percentages, and categorical results using `value_counts()` and `nunique()`. It verifies every original numeric statistic against a JSON baseline produced by the pure Python script. It also compares the categorical results and missing counts.
+
+**Verified result from the submitted JSON files:** all 306 shared column metrics passed comparison on 246,745 rows and 40 columns. All 26 numeric columns agreed within tolerance. Eight standard deviations differed slightly; the largest absolute difference was **1.11 × 10⁻¹⁶**, below the `1e-12` tolerance. There were zero failures. Dataset structure checks also passed.
+
+### Reproduce both analyses
+
+Run Phase 1 first, then Phase 2, from the project folder:
+
+```powershell
+.\.venv312\Scripts\python.exe pure_python_stats.py "fb_ads_president_scored_anon.csv" --json-output pure_python_results.json
+.\.venv312\Scripts\python.exe pandas_stats.py "fb_ads_president_scored_anon.csv" --baseline pure_python_results.json --json-output pandas_results.json --comparison-output comparison_results.json
+```
+
+These commands print human-readable results in the terminal and create the three JSON files. To save the terminal output as well, add `> pure_python_output.txt` to the first command and `> pandas_output.txt` to the second. Those text files are optional and are not created by `--json-output`.
+
+For another environment, replace `.\.venv312\Scripts\python.exe` with the Python executable where the required packages are installed.
+
+A successful comparison returns exit status 0; a mismatch returns 1. Both scripts need the original dataset supplied separately. Pandas results contain an additional `missing_percentage` field (0–100). Mean and standard deviation comparisons allow relative and absolute tolerances of `1e-12`; other shared statistics must match exactly.
+
+| Additional file | Purpose |
+| --- | --- |
+| `pandas_stats.py` | Independent Pandas implementation and optional comparison |
+| `requirements.txt` (if used) | Pin `numpy==2.2.6` and `pandas==2.2.3` for the verified Python 3.12 setup |
+| `pure_python_output.txt`, `pure_python_results.json` | Fresh Phase 1 results |
+| `pandas_output.txt`, `pandas_results.json` | Complete Phase 2 results |
+| `comparison_results.json` | Machine-readable verification, failures, and numerical differences |
+| `COMPARISON.md` | Required reflection |
+
+Synthetic checks cover all-empty columns, zeros, mixed text/numbers, a single numeric observation, formatted currency, dates, and categorical ties. They confirm agreement between the two implementations for those cases. The uploaded JSON files verify the comparable per-column results, not the terminal-only `info()` and `describe()` displays. Both implementations load data into memory; neither is intended as a streaming solution. The Pandas script relies on its CSV reader for malformed input handling; the Phase 1 script has additional explicit row-width and header validation.
